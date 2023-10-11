@@ -1,0 +1,108 @@
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import {Link} from "react-router-dom";
+
+const DeleteModal = ({ id, onDelete, onClose }) => {
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <h2>¿Confirmar eliminación?</h2>
+          <p>¿Estás seguro de que deseas eliminar el elemento con ID {id}?</p>
+          <button onClick={onDelete}>Eliminar</button>
+          <button onClick={onClose}>Cancelar</button>
+        </div>
+      </div>
+    );
+  };
+//function Usuarios (){
+
+const Usuarios = () => {
+    const [usuarios, setUsuarios] = useState([])
+    const [estado, setEstado] = useState(0)
+    const [showModal, setShowModal] = useState(false);
+    const [itemIdToDelete, setItemIdToDelete] = useState(null);
+
+    // Mostrar todos los usuarios en la BBDD
+    useEffect(()=> {
+        axios.get("http://localhost:3001")
+        .then(result=> setUsuarios(result.data))
+        .catch(err=> console.log(err));
+    }, [estado])
+
+
+    const handleDeleteClick = (id) => {
+        setItemIdToDelete(id);
+        setShowModal(true);
+    };
+
+    
+   	const handleDeleteConfirm = () => {
+        console.log(id);
+        axios.delete('http://localhost:3001/deleteUsuarios/'+id)
+        .then(res=>console.log(res))
+        .catch(err=>console.log(err));
+        setEstado(estado+1)
+        setShowModal(false)
+    }
+
+    const handleModalClose = () => {
+        // Cierra el modal sin realizar ninguna acción.
+        setShowModal(false);
+      };
+
+
+    return (
+        // <div className='d-flex bg-info justify-content-center align-items-center'>
+
+		<div className='d-flex bg-info lista justify-content-center align-items-center'>
+			<h3>Lista de Usuarios</h3>
+        <div className='w-60 bg-white rounded p-3'>
+            <Link to="/create" className="btn btn-success">Agregar</Link>
+            <table className='table'>
+            <thead>
+				<tr>
+					<th>Imagen</th>
+					<th>Nombre</th>
+					<th>Apellido</th>
+					<th>Dirección</th>
+					<th>Ciudad</th>
+					<th>Correo</th>
+					<th colSpan={2}>Acciones</th>
+				</tr>
+            </thead>
+            <tbody>
+                {
+                    usuarios.map((usuario) => {
+                        return <tr key={usuario._id}>
+                            <td><img src={usuario.picture} alt={usuario._id} className="rounded"/></td>
+							<td>{usuario.first}</td>
+                            <td>{usuario.last}</td>
+							<td>{usuario.street}</td>
+							<td>{usuario.city}</td>
+							<td>{usuario.email}</td>
+							{/* <td><button className="btn btn-warning" onClick={(e) => handleEdit(usuario._id)}>Editar</button></td> */}
+                            <td><Link to={`/edit/${usuario._id}`} className="btn btn-success">Editar</Link></td>
+
+                            {/* Botón para abrir el modal */}
+                             <td><button onClick={() => handleDeleteClick(usuario._id)}>Eliminar</button>
+
+                             {showModal && (
+                                <DeleteModal
+                                    id={itemIdToDelete}
+                                    onDelete={handleDeleteConfirm}
+                                    onClose={handleModalClose}
+                                />
+                            )} </td>       
+                            {/* <td><button onClick={() => setShowModal(true)}>Eliminar Elemento</button></td>  */}
+                            
+                            {/* <td><button className="btn btn-danger" onClick={(e) => handleDelete(usuario._id)}>Eliminar</button></td> */}
+                        </tr>
+                    })
+                }
+            </tbody>
+            </table>
+        </div>
+    </div>
+    )
+}
+export default Usuarios;
